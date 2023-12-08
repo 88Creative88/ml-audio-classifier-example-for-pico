@@ -1,3 +1,25 @@
 inference-app/build/
-requirements.txt
+
+# Bytecode-Dateien
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtuelle Umgebungen
+venv/
+env/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# OS-spezifische Dateien
+.DS_Store # macOS spezifisch
+Thumbs.db # Windows spezifisch
+
+# IDE-spezifische Dateien
+.idea/ # Für JetBrains IDEs wie PyCharm
+.vscode/ # Für Visual Studio Code
+*.swp # Für Vim
 
