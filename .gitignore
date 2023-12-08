@@ -1,5 +1,5 @@
 inference-app/build/
-
+data
 # Bytecode-Dateien
 __pycache__/
 *.pyc
