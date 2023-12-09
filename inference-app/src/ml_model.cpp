@@ -85,7 +85,23 @@ void* MLModel::input_data()
 
     return _input_tensor->data.data;
 }
+std::vector<float> MLModel::predict() {
+    TfLiteStatus invoke_status = _interpreter->Invoke();
+    if (invoke_status != kTfLiteOk) {
+        return std::vector<float>(); // Rückgabe eines leeren Vektors bei Fehler
+    }
 
+    std::vector<float> predictions;
+    for (int i = 0; i < _output_tensor->dims->data[_output_tensor->dims->size - 1]; ++i) {
+        float y_quantized = _output_tensor->data.int8[i];
+        float y = (y_quantized - _output_tensor->params.zero_point) * _output_tensor->params.scale;
+        predictions.push_back(y);
+    }
+
+    return predictions;
+}
+
+/*
 float MLModel::predict()
 {
     TfLiteStatus invoke_status = _interpreter->Invoke();
@@ -99,7 +115,7 @@ float MLModel::predict()
 
     return y;
 }
-
+*/
 float MLModel::input_scale() const
 {
     if (_input_tensor == NULL) {
