@@ -19,7 +19,7 @@ class MLModel {
 
         int init();
         void* input_data();
-        float predict();
+        std::vector<float> predict();
 
         float input_scale() const;
         int32_t input_zero_point() const;
