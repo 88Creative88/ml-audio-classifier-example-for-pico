@@ -9,7 +9,7 @@
 #include "tensorflow/lite/version.h"
 
 #include "ml_model.h"
-
+uint8_t word = 8;
 MLModel::MLModel(const unsigned char tflite_model[], int tensor_arena_size) :
     _tflite_model(tflite_model),
     _tensor_arena_size(tensor_arena_size),
@@ -103,11 +103,15 @@ std::vector<float> MLModel::predict() {
         predictions.push_back(y);
         //printf("Element %d: Quantisiert = %f, Skaliert = %f\n", i, y_quantized, y);
 
-      
+
     }
+    printf("last known %d\n", word);
     //printf("Anzahl der Vorhersagen: %lu\n", predictions.size());
     for (int i = 0; i < predictions.size(); ++i) {
     printf("Vorhersage %d: %f\n", i, predictions[i]);
+      if (predictions[i] > 0.15) {
+        word = i;
+      }
 }
 
     return predictions;

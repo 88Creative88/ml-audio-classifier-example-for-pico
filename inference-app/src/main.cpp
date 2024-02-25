@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * 
  */
-
+#include <malloc.h>
 #include <stdio.h>
 
 #include "pico/stdlib.h"
@@ -22,7 +22,7 @@ extern "C" {
 // constants
 #define SAMPLE_RATE       16000
 #define FFT_SIZE          256
-#define SPECTRUM_SHIFT    4
+#define SPECTRUM_SHIFT    16
 #define INPUT_BUFFER_SIZE ((FFT_SIZE / 2) * SPECTRUM_SHIFT)
 #define INPUT_SHIFT       0
 
@@ -58,7 +58,8 @@ MLModel ml_model(tflite_model, 128 * 1024);
 int8_t* scaled_spectrum = nullptr;
 int32_t spectogram_divider;
 float spectrogram_zero_point;
-
+uint32_t getTotalHeap(void);
+uint32_t getFreeHeap(void);
 void on_pdm_samples_ready();
 
 int main( void )
@@ -69,7 +70,7 @@ int main( void )
     printf("hello pico fire alarm detection\n");
 
     gpio_set_function(PICO_DEFAULT_LED_PIN, GPIO_FUNC_PWM);
-    
+
     uint pwm_slice_num = pwm_gpio_to_slice_num(PICO_DEFAULT_LED_PIN);
     uint pwm_chan_num = pwm_gpio_to_channel(PICO_DEFAULT_LED_PIN);
 
@@ -90,7 +91,7 @@ int main( void )
     }
 
     scaled_spectrum = (int8_t*)ml_model.input_data();
-    spectogram_divider = 64 * ml_model.input_scale(); 
+    spectogram_divider = 64 * ml_model.input_scale();
     spectrogram_zero_point = ml_model.input_zero_point();
 
     // initialize the PDM microphone
@@ -110,6 +111,8 @@ int main( void )
     }
 
     while (1) {
+
+
         // wait for new samples
         while (new_samples_captured == 0) {
             tight_loop_contents();
@@ -123,9 +126,10 @@ int main( void )
 
         // copy new samples to end of the input buffer with a bit shift of INPUT_SHIFT
         arm_shift_q15(capture_buffer_q15, INPUT_SHIFT, input_q15 + (FFT_SIZE / 2), INPUT_BUFFER_SIZE);
-    
+        //printf("Total Heap: %u\n", getTotalHeap());
+        //printf("Free Heap: %u\n", getFreeHeap());
         for (int i = 0; i < SPECTRUM_SHIFT; i++) {
-            printf("Eingabedaten an Position %d: %d\n", i, input_q15[i * (FFT_SIZE / 2)]);
+            //printf("Eingabedaten an Position %d: %d\n", i, input_q15[i * (FFT_SIZE / 2)]);
 
             dsp_pipeline.calculate_spectrum(
                 input_q15 + i * ((FFT_SIZE / 2)),
@@ -135,7 +139,7 @@ int main( void )
         }
 
         std::vector<float> prediction = ml_model.predict();
-       
+
         // Durchlaufen des Vektors und Ausgabe jedes Wertes mit printf()
         //for (int i = 0; i < prediction.size(); ++i) {
           //printf("Vorhersage %d: %.2f\n", i + 1, prediction[i]);
@@ -151,7 +155,7 @@ int main( void )
 void on_pdm_samples_ready()
 {
     // callback from library when all the samples in the library
-    // internal sample buffer are ready for reading 
+    // internal sample buffer are ready for reading
 
     // read in the new samples
     new_samples_captured = pdm_microphone_read(capture_buffer_q15, INPUT_BUFFER_SIZE);
@@ -164,4 +168,16 @@ void on_pdm_samples_ready()
 
   // print the maximum level to the console
   //printf("Maximum level: %d\n", max_level);
+}
+
+ uint32_t getTotalHeap(void) {
+   extern char __StackLimit, __bss_end__;
+
+   return &__StackLimit  - &__bss_end__;
+}
+
+uint32_t getFreeHeap(void) {
+   struct mallinfo m = mallinfo();
+
+   return getTotalHeap() - m.uordblks;
 }
