@@ -66,7 +66,7 @@ int MLModel::init()
     }
 
     TfLiteStatus allocate_status = _interpreter->AllocateTensors();
-    if (allocate_status != kTfLiteOk) {
+        if (allocate_status != kTfLiteOk) {
         TF_LITE_REPORT_ERROR(&_error_reporter, "AllocateTensors() failed");
         return 0;
     }
@@ -87,14 +87,14 @@ void* MLModel::input_data()
 }
 
 std::vector<float> MLModel::predict() {
-    //printf("Aufruf von Invoke...\n");
+
     TfLiteStatus invoke_status = _interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
-        //printf("Invoke fehlgeschlagen: Status = %d\n", invoke_status);
+
         return std::vector<float>(); // Return an empty vector on error
     }
     int output_tensor_size = _output_tensor->dims->data[_output_tensor->dims->size - 1];
-    //printf("Größe des Ausgabetensors: %d\n", output_tensor_size);
+
 
     std::vector<float> predictions;
     for (int i = 0; i < _output_tensor->dims->data[_output_tensor->dims->size - 1]; ++i) {
@@ -105,14 +105,9 @@ std::vector<float> MLModel::predict() {
 
 
     }
-    printf("last known %d\n", word);
-    //printf("Anzahl der Vorhersagen: %lu\n", predictions.size());
-    for (int i = 0; i < predictions.size(); ++i) {
-    printf("Vorhersage %d: %f\n", i, predictions[i]);
-      if (predictions[i] > 0.15) {
-        word = i;
-      }
-}
+
+
+
 
     return predictions;
     
