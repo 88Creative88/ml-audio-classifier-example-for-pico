@@ -139,13 +139,19 @@ int main( void )
         }
 
         std::vector<float> prediction = ml_model.predict();
+    for (int i = 0; i < prediction.size(); ++i) {
+    //printf("Vorhersage %d: %f\n", i, predictions[i]);
+      if (prediction[0] > 0.9) {
+        printf("go: %f\n", prediction[0]);
+      }
+      if (prediction[1] > 0.9) {
+      printf("up: %f\n", prediction[1]);
+      }
+      if (prediction[2] > 0.9) {
+        printf("yes: %f\n", prediction[2]);
+      }
 
-        // Durchlaufen des Vektors und Ausgabe jedes Wertes mit printf()
-        //for (int i = 0; i < prediction.size(); ++i) {
-          //printf("Vorhersage %d: %.2f\n", i + 1, prediction[i]);
-      //}
-
-        //pwm_set_chan_level(pwm_slice_num, pwm_chan_num, prediction * 255);
+}
 
     }
 
@@ -159,15 +165,7 @@ void on_pdm_samples_ready()
 
     // read in the new samples
     new_samples_captured = pdm_microphone_read(capture_buffer_q15, INPUT_BUFFER_SIZE);
-    int32_t max_level = 0;
-  for (int i = 0; i < INPUT_BUFFER_SIZE; i++) {
-    if (abs(capture_buffer_q15[i]) > max_level) {
-      max_level = abs(capture_buffer_q15[i]);
-    }
-  }
 
-  // print the maximum level to the console
-  //printf("Maximum level: %d\n", max_level);
 }
 
  uint32_t getTotalHeap(void) {
