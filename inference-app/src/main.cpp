@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  * 
  */
+#include "pico/time.h"
+#include <chrono>
 #include <malloc.h>
-#include <stdio.h>
 
+#include <algorithm>
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 
@@ -22,7 +24,7 @@ extern "C" {
 // constants
 #define SAMPLE_RATE       16000
 #define FFT_SIZE          256
-#define SPECTRUM_SHIFT    16
+#define SPECTRUM_SHIFT    4
 #define INPUT_BUFFER_SIZE ((FFT_SIZE / 2) * SPECTRUM_SHIFT)
 #define INPUT_SHIFT       0
 
@@ -112,7 +114,6 @@ int main( void )
 
     while (1) {
 
-
         // wait for new samples
         while (new_samples_captured == 0) {
             tight_loop_contents();
@@ -137,21 +138,36 @@ int main( void )
                 spectogram_divider, spectrogram_zero_point
             );
         }
-
+        absolute_time_t start = get_absolute_time();
         std::vector<float> prediction = ml_model.predict();
-    for (int i = 0; i < prediction.size(); ++i) {
-    //printf("Vorhersage %d: %f\n", i, predictions[i]);
-      if (prediction[0] > 0.9) {
-        printf("go: %f\n", prediction[0]);
-      }
-      if (prediction[1] > 0.9) {
-      printf("up: %f\n", prediction[1]);
-      }
-      if (prediction[2] > 0.9) {
-        printf("yes: %f\n", prediction[2]);
-      }
+
+       absolute_time_t end = get_absolute_time();
+        int64_t time_taken_us = absolute_time_diff_us(start, end);
+
+
+     bool conditionMet = false;  // Initialisiere das Flag als false
+
+if (prediction[0] > 0.5){
+    printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
+    printf("go: %f\n", prediction[0]);
+    conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
+}
+
+if (prediction[1] > 0.5){
+    printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
+    printf("up: %f\n", prediction[1]);
+    conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
+}
+
+if (conditionMet) {  // Überprüfe, ob mindestens eine der Bedingungen erfüllt wurde
+printf("sleep\n");
+    sleep_ms(1000);  // Pausiere das Programm für 1000 Millisekunden
+    printf("weiter\n");
+
 
 }
+
+//}
 
     }
 
