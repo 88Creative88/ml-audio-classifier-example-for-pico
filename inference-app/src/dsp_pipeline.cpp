@@ -65,7 +65,7 @@ void DSPPipeline::shift_spectrogram(int8_t* spectrogram, int shift_amount, int s
     int spectrogram_height = _fft_size / 2 + 1;
 
     // Setzen Sie shift_amount auf 8
-    shift_amount = 16;
+    shift_amount = 4;
 
     // Stellen Sie sicher, dass spectrogram_width mindestens 8 ist
     if (spectrogram_width < shift_amount) {
