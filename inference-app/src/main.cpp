@@ -55,7 +55,7 @@ volatile int new_samples_captured = 0;
 q15_t input_q15[INPUT_BUFFER_SIZE + (FFT_SIZE / 2)];
 
 DSPPipeline dsp_pipeline(FFT_SIZE);
-MLModel ml_model(tflite_model, 128 * 1024);
+MLModel ml_model(tflite_model, 170 * 1024);
 
 int8_t* scaled_spectrum = nullptr;
 int32_t spectogram_divider;
@@ -63,7 +63,10 @@ float spectrogram_zero_point;
 uint32_t getTotalHeap(void);
 uint32_t getFreeHeap(void);
 void on_pdm_samples_ready();
+#define DEBOUNCE_INTERVAL_MS 1000  // Mindestzeitspanne in Millisekunden
 
+uint64_t last_go_time = 0;
+uint64_t last_up_time = 0;
 int main( void )
 {
     // initialize stdio
@@ -143,29 +146,25 @@ int main( void )
 
        absolute_time_t end = get_absolute_time();
         int64_t time_taken_us = absolute_time_diff_us(start, end);
-
+uint64_t current_time = time_us_64();
 
      bool conditionMet = false;  // Initialisiere das Flag als false
 
-if (prediction[0] > 0.5){
+  if (prediction[0] > 0.5 && (current_time - last_go_time) > DEBOUNCE_INTERVAL_MS * 1000) {
     printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
     printf("go: %f\n", prediction[0]);
-    conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
+    last_go_time = current_time;
+    //conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
 }
 
-if (prediction[1] > 0.5){
+if (prediction[1] > 0.5 && (current_time - last_up_time) > DEBOUNCE_INTERVAL_MS * 1000) {
     printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
     printf("up: %f\n", prediction[1]);
-    conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
+    last_up_time = current_time;
+    //conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
 }
 
-if (conditionMet) {  // Überprüfe, ob mindestens eine der Bedingungen erfüllt wurde
-printf("sleep\n");
-    sleep_ms(1000);  // Pausiere das Programm für 1000 Millisekunden
-    printf("weiter\n");
 
-
-}
 
 //}
 
