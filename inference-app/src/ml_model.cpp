@@ -87,30 +87,24 @@ void* MLModel::input_data()
 }
 
 std::vector<float> MLModel::predict() {
-
     TfLiteStatus invoke_status = _interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
-
-        return std::vector<float>(); // Return an empty vector on error
+        // Logge den Fehler oder handle ihn angemessen
+        return std::vector<float>(); // Gebe immer noch einen leeren Vektor zurück
     }
-    int output_tensor_size = _output_tensor->dims->data[_output_tensor->dims->size - 1];
 
+    int output_size = _output_tensor->dims->data[_output_tensor->dims->size - 1];
+    auto zero_point = _output_tensor->params.zero_point;
+    auto scale = _output_tensor->params.scale;
 
-    std::vector<float> predictions;
-    for (int i = 0; i < _output_tensor->dims->data[_output_tensor->dims->size - 1]; ++i) {
+    std::vector<float> predictions(output_size); // Speicher wird bereits hier zugewiesen
+
+    for (int i = 0; i < output_size; ++i) {
         float y_quantized = _output_tensor->data.int8[i];
-        float y = (y_quantized - _output_tensor->params.zero_point) * _output_tensor->params.scale;
-        predictions.push_back(y);
-        //printf("Element %d: Quantisiert = %f, Skaliert = %f\n", i, y_quantized, y);
-
-
+        predictions[i] = (y_quantized - zero_point) * scale; // Direkte Zuweisung, keine push_back-Aufrufe
     }
-
-
-
 
     return predictions;
-    
 }
 
 float MLModel::input_scale() const

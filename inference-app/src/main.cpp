@@ -24,7 +24,7 @@ extern "C" {
 // constants
 #define SAMPLE_RATE       16000
 #define FFT_SIZE          256
-#define SPECTRUM_SHIFT    4
+#define SPECTRUM_SHIFT    32
 #define INPUT_BUFFER_SIZE ((FFT_SIZE / 2) * SPECTRUM_SHIFT)
 #define INPUT_SHIFT       0
 
@@ -55,7 +55,7 @@ volatile int new_samples_captured = 0;
 q15_t input_q15[INPUT_BUFFER_SIZE + (FFT_SIZE / 2)];
 
 DSPPipeline dsp_pipeline(FFT_SIZE);
-MLModel ml_model(tflite_model, 170 * 1024);
+MLModel ml_model(tflite_model, 64 * 1024);
 
 int8_t* scaled_spectrum = nullptr;
 int32_t spectogram_divider;
@@ -67,6 +67,7 @@ void on_pdm_samples_ready();
 
 uint64_t last_go_time = 0;
 uint64_t last_up_time = 0;
+uint64_t last_lf_time = 0;
 int main( void )
 {
     // initialize stdio
@@ -119,7 +120,6 @@ int main( void )
 
         // wait for new samples
         while (new_samples_captured == 0) {
-            tight_loop_contents();
         }
         new_samples_captured = 0;
 
@@ -130,8 +130,7 @@ int main( void )
 
         // copy new samples to end of the input buffer with a bit shift of INPUT_SHIFT
         arm_shift_q15(capture_buffer_q15, INPUT_SHIFT, input_q15 + (FFT_SIZE / 2), INPUT_BUFFER_SIZE);
-        //printf("Total Heap: %u\n", getTotalHeap());
-        //printf("Free Heap: %u\n", getFreeHeap());
+
         for (int i = 0; i < SPECTRUM_SHIFT; i++) {
             //printf("Eingabedaten an Position %d: %d\n", i, input_q15[i * (FFT_SIZE / 2)]);
 
@@ -148,22 +147,34 @@ int main( void )
         int64_t time_taken_us = absolute_time_diff_us(start, end);
 uint64_t current_time = time_us_64();
 
-     bool conditionMet = false;  // Initialisiere das Flag als false
 
-  if (prediction[0] > 0.5 && (current_time - last_go_time) > DEBOUNCE_INTERVAL_MS * 1000) {
+
+
+  if (prediction[0] > 0.9 && (current_time - last_go_time) > DEBOUNCE_INTERVAL_MS * 1000) {
     printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
-    printf("go: %f\n", prediction[0]);
+    printf("Total Heap: %u\n", getTotalHeap());
+    printf("Free Heap: %u\n", getFreeHeap());
+    printf("up: %f\n", prediction[0]);
     last_go_time = current_time;
     //conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
 }
 
-if (prediction[1] > 0.5 && (current_time - last_up_time) > DEBOUNCE_INTERVAL_MS * 1000) {
+if (prediction[1] > 0.9 && (current_time - last_up_time) > DEBOUNCE_INTERVAL_MS * 1000) {
     printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
-    printf("up: %f\n", prediction[1]);
+    printf("Total Heap: %u\n", getTotalHeap());
+    printf("Free Heap: %u\n", getFreeHeap());
+    printf("go: %f\n", prediction[1]);
     last_up_time = current_time;
     //conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
 }
-
+if (prediction[2] > 0.9 && (current_time - last_lf_time) > DEBOUNCE_INTERVAL_MS * 1000) {
+    printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
+    printf("Total Heap: %u\n", getTotalHeap());
+    printf("Free Heap: %u\n", getFreeHeap());
+    printf("lf: %f\n", prediction[2]);
+    last_lf_time = current_time;
+    //conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
+}
 
 
 //}
