@@ -31,7 +31,7 @@ extern "C" {
 #define SAMPLE_RATE 16000
 #define FFT_SIZE 256
 #define SPECTRUM_SHIFT 32
-#define INPUT_BUFFER_SIZE((FFT_SIZE / 2) * SPECTRUM_SHIFT)
+#define INPUT_BUFFER_SIZE ((FFT_SIZE / 2) * SPECTRUM_SHIFT)
 #define INPUT_SHIFT 0
 
 // microphone configuration
@@ -165,7 +165,7 @@ int main(void) {
       printf("Free Heap: %u\n", getFreeHeap());
       printf("up: %f\n", prediction[0]);
       last_up_time = current_time;
-      //conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
+
     }
 
     if (prediction[1] > 0.9 && (current_time - last_go_time) > DEBOUNCE_INTERVAL_MS * 1000) {
@@ -174,7 +174,7 @@ int main(void) {
       printf("Free Heap: %u\n", getFreeHeap());
       printf("go: %f\n", prediction[1]);
       last_go_time = current_time;
-      //conditionMet = true;  // Setze das Flag auf true, da die Bedingung erfüllt wurde
+
     }
 
   }
