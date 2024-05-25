@@ -5,7 +5,7 @@
  * 
  */
 #include "pico/time.h"
-
+#include <iostream>
 #include <chrono>
 
 #include <malloc.h>
@@ -73,7 +73,7 @@ void on_pdm_samples_ready();
 
 uint64_t last_go_time = 0;
 uint64_t last_up_time = 0;
-
+const int BAR_LENGTH = 20; // Maximale Länge des Balkens
 int main(void) {
   // initialize stdio
   stdio_init_all();
@@ -130,6 +130,9 @@ int main(void) {
   }
 
   while (1) {
+    printf("\033[H");
+
+
 
     // wait for new samples
     while (new_samples_captured == 0) {}
@@ -159,24 +162,35 @@ int main(void) {
     int64_t time_taken_us = absolute_time_diff_us(start, end);
     uint64_t current_time = time_us_64();
 
-    if (prediction[0] > 0.9 && (current_time - last_up_time) > DEBOUNCE_INTERVAL_MS * 1000) {
-      printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
-      printf("Total Heap: %u\n", getTotalHeap());
-      printf("Free Heap: %u\n", getFreeHeap());
-      printf("up: %f\n", prediction[0]);
-      last_up_time = current_time;
+    // Vorhersagewerte und Balkendiagramme ausgeben
+    printf("up: %6.2f%% (%.4f) [", prediction[0] * 100, prediction[0]);
+    int barSize = static_cast<int>(prediction[0] * BAR_LENGTH);
+    for (int j = 0; j < barSize; j++) printf("#");
+    for (int j = barSize; j < BAR_LENGTH; j++) printf(" ");
+    printf("]\n");
 
-    }
+    printf("go: %6.2f%% (%.4f) [", prediction[1] * 100, prediction[1]);
+    barSize = static_cast<int>(prediction[1] * BAR_LENGTH);
+    for (int j = 0; j < barSize; j++) printf("#");
+    for (int j = barSize; j < BAR_LENGTH; j++) printf(" ");
+    printf("]\n");
 
-    if (prediction[1] > 0.9 && (current_time - last_go_time) > DEBOUNCE_INTERVAL_MS * 1000) {
-      printf("Time taken by predict() is : %.8f sec \n", time_taken_us / 1e6);
-      printf("Total Heap: %u\n", getTotalHeap());
-      printf("Free Heap: %u\n", getFreeHeap());
-      printf("go: %f\n", prediction[1]);
-      last_go_time = current_time;
+    printf("un: %6.2f%% (%.4f) [", prediction[2] * 100, prediction[2]);
+    barSize = static_cast<int>(prediction[2] * BAR_LENGTH);
+    for (int j = 0; j < barSize; j++) printf("#");
+    for (int j = barSize; j < BAR_LENGTH; j++) printf(" ");
+    printf("]\n");
 
-    }
+    printf("bg: %6.2f%% (%.4f) [", prediction[3] * 100, prediction[3]);
+    barSize = static_cast<int>(prediction[3] * BAR_LENGTH);
+    for (int j = 0; j < barSize; j++) printf("#");
+    for (int j = barSize; j < BAR_LENGTH; j++) printf(" ");
+    printf("]\n");
 
+    // Leistungsinformationen direkt nach den Vorhersagen ausgeben
+    printf("Time taken by predict() is: %.8f sec\n", time_taken_us / 1e6);
+    printf("Total Heap: %u\n", getTotalHeap());
+    printf("Free Heap: %u\n", getFreeHeap());
   }
 
   return 0;
