@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- * 
- */
+
 #include "pico/time.h"
 #include <iostream>
 #include <chrono>
@@ -132,8 +127,6 @@ int main(void) {
   while (1) {
     printf("\033[H");
 
-
-
     // wait for new samples
     while (new_samples_captured == 0) {}
     new_samples_captured = 0;
@@ -147,8 +140,6 @@ int main(void) {
     arm_shift_q15(capture_buffer_q15, INPUT_SHIFT, input_q15 + (FFT_SIZE / 2), INPUT_BUFFER_SIZE);
 
     for (int i = 0; i < SPECTRUM_SHIFT; i++) {
-
-
       dsp_pipeline.calculate_spectrum(
         input_q15 + i * ((FFT_SIZE / 2)),
         scaled_spectrum + (129 * (124 - SPECTRUM_SHIFT + i)),
@@ -162,7 +153,6 @@ int main(void) {
     int64_t time_taken_us = absolute_time_diff_us(start, end);
     uint64_t current_time = time_us_64();
 
-    // Vorhersagewerte und Balkendiagramme ausgeben
     printf("up: %6.2f%% (%.4f) [", prediction[0] * 100, prediction[0]);
     int barSize = static_cast<int>(prediction[0] * BAR_LENGTH);
     for (int j = 0; j < barSize; j++) printf("#");
@@ -187,7 +177,6 @@ int main(void) {
     for (int j = barSize; j < BAR_LENGTH; j++) printf(" ");
     printf("]\n");
 
-    // Leistungsinformationen direkt nach den Vorhersagen ausgeben
     printf("Time taken by predict() is: %.8f sec\n", time_taken_us / 1e6);
     printf("Total Heap: %u\n", getTotalHeap());
     printf("Free Heap: %u\n", getFreeHeap());
@@ -197,8 +186,6 @@ int main(void) {
 }
 
 void on_pdm_samples_ready() {
-  // callback from library when all the samples in the library
-  // internal sample buffer are ready for reading
 
   // read in the new samples
   new_samples_captured = pdm_microphone_read(capture_buffer_q15, INPUT_BUFFER_SIZE);
