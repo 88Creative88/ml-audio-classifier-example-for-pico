@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- * 
- */
+
 
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -87,18 +82,18 @@ std::vector < float > MLModel::predict() {
   TfLiteStatus invoke_status = _interpreter -> Invoke();
   if (invoke_status != kTfLiteOk) {
 
-    return std::vector < float > (); // Gebe immer noch einen leeren Vektor zurück
+    return std::vector < float > ();
   }
 
   int output_size = _output_tensor -> dims -> data[_output_tensor -> dims -> size - 1];
   auto zero_point = _output_tensor -> params.zero_point;
   auto scale = _output_tensor -> params.scale;
 
-  std::vector < float > predictions(output_size); // Speicher wird bereits hier zugewiesen
+  std::vector < float > predictions(output_size);
 
   for (int i = 0; i < output_size; ++i) {
     float y_quantized = _output_tensor -> data.int8[i];
-    predictions[i] = (y_quantized - zero_point) * scale; // Direkte Zuweisung, keine push_back-Aufrufe
+    predictions[i] = (y_quantized - zero_point) * scale;
   }
 
   return predictions;
